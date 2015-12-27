@@ -1,5 +1,6 @@
 var Promise = require('bluebird');
 var AlexaUtterances = require('alexa-utterances');
+var ssml = require('ssml');
 
 var alexa={};
 
@@ -12,12 +13,28 @@ alexa.response = function() {
 			"shouldEndSession": true
 		}
 	};
-	this.say = function(str) {
-		if (typeof this.response.response.outputSpeech=="undefined") {
-			this.response.response.outputSpeech = {"type":"PlainText","text":str};
+	this.say = function(message) {
+    if (message instanceof ssml) {
+      // coerce message to String
+      message = message.toString({minimal: true})
+        .replace("<speak>", "").replace("</speak>", "");
+    }
+
+    var previous = this.response.response.outputSpeech;
+
+		if (typeof previous=="undefined") {
+      // no existing output
+			this.response.response.outputSpeech = {
+        "type":"SSML",
+        "ssml": new ssml().say(message).toString({minimal: true})
+      };
 		}
 		else {
-			this.response.response.outputSpeech.text+=str;
+      // there is existing content
+      this.response.response.outputSpeech.ssml = new ssml()
+        .say(previous.ssml.replace("<speak>", "").replace("</speak>", "") + " ")
+        .say(message)
+        .toString({minimal: true});
 		}
 		return this;
 	};
@@ -25,12 +42,29 @@ alexa.response = function() {
 		this.response.response.outputSpeech = {"type":"PlainText","text":""};
 		return this;
 	};
-	this.reprompt = function(str) {
-		if (typeof this.response.response.reprompt=="undefined") {
-			this.response.response.reprompt = {"outputSpeech" : {"type":"PlainText","text":str}};
+	this.reprompt = function(message) {
+
+    if (message instanceof ssml) {
+      // coerce message to String
+      message = message.toString({minimal: true})
+        .replace("<speak>", "").replace("</speak>", "");
+    }
+
+    var previous = this.response.response.reprompt;
+
+		if (typeof previous=="undefined") {
+      // no existing reprompt
+			this.response.response.reprompt = {"outputSpeech" : {
+        "type":"SSML",
+        "ssml": new ssml().say(message).toString({minimal: true})}
+      };
 		}
 		else {
-			this.response.response.reprompt.outputSpeech.text+=str;
+      // reprompt has existing content
+			this.response.response.reprompt.outputSpeech.ssml = new ssml()
+        .say(previous.outputSpeech.ssml.replace("<speak>", "").replace("</speak>", "") + " ")
+        .say(message)
+        .toString({minimal: true});
 		}
 		return this;
 	};

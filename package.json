@@ -10,6 +10,9 @@
     "alexa",
     "skills"
   ],
+  "scripts": {
+    "test": "tap test/*.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/MaxwellPayne/alexa-app.git"
@@ -17,6 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "alexa-utterances": "https://github.com/MaxwellPayne/alexa-utterances/tarball/master",
-    "bluebird": "^2.10.2"
+    "bluebird": "^2.10.2",
+    "ssml": "^0.0.3"
   }
 }
